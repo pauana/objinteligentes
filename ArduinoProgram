@@ -1,0 +1,94 @@
+#include <Arduino.h>
+#include <ESP8266WiFi.h>
+#include <PubSubClient.h>
+
+// Configurações Wi-Fi
+const char* ssid = "YOUR_SSID";
+const char* password = "YOUR_PASSWORD";
+
+// Configurações MQTT
+const char* mqtt_server = "YOUR_MQTT_SERVER_ADDRESS"; // IP ou URL do broker MQTT
+const int mqtt_port = 1883; // Porta padrão MQTT
+const char* mqtt_topic = "test/topic";
+
+WiFiClient espClient;
+PubSubClient client(espClient);
+
+long valorMedio;
+
+void setup_wifi() {
+  delay(10);
+  Serial.println();
+  Serial.print("Conectando-se a ");
+  Serial.println(ssid);
+
+  WiFi.begin(ssid, password);
+
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+
+  Serial.println("");
+  Serial.println("WiFi conectado");
+  Serial.println("Endereço IP: ");
+  Serial.println(WiFi.localIP());
+}
+
+void reconnect() {
+  while (!client.connected()) {
+    Serial.print("Tentando se conectar ao MQTT...");
+    if (client.connect("ArduinoClient")) {
+      Serial.println("conectado");
+      client.subscribe(mqtt_topic);
+    } else {
+      Serial.print("Falhou, rc=");
+      Serial.print(client.state());
+      Serial.println(" tentando novamente em 5 segundos");
+      delay(5000);
+    }
+  }
+}
+
+void setup() {
+  Serial.begin(9600);
+  setup_wifi();
+  client.setServer(mqtt_server, mqtt_port);
+
+  valorMedio = 0;
+  long med = 0;
+  for (int t = 0; t < 10000; t++) {
+    int flexSensorReading = analogRead(A0);
+    med = (med + flexSensorReading) / 2;
+  }
+  valorMedio = med;
+
+  pinMode(2, OUTPUT);
+}
+
+void loop() {
+  if (!client.connected()) {
+    reconnect();
+  }
+  client.loop();
+  long med = 0;
+  long desvio = 0;
+  for (int t = 0; t < 1000; t++) {
+    int flexSensorReading = analogRead(A0);
+    med = (med + flexSensorReading) / 2;
+    if (med != valorMedio) {
+      desvio++;
+    }
+  }
+
+  long flex0toX = map(desvio, 0, 1000, 0, 15);
+  Serial.println(flex0toX);
+
+  if (flex0toX > 6) {
+    digitalWrite(2, HIGH);
+    client.publish(mqtt_topic, "Coluna Torta");
+  }
+
+  delay(500);
+  digitalWrite(2, LOW);
+}
