@@ -1,1 +1,3 @@
 Neste projeto, propomos o desenvolvimento de um monitor de postura baseado em Arduino, com foco em contrapor os efeitos adversos do estilo de vida contemporâneo, marcado pelo sedentarismo e uso intensivo de dispositivos eletrônicos. Através da utilização de um sensor de inclinação e um motor vibratório como atuador, o dispositivo visa detectar e corrigir em tempo real a postura inadequada dos usuários. Esta intervenção tecnológica tem o potencial de promover uma melhoria significativa na saúde e bem-estar, alinhando-se com os objetivos de desenvolvimento sustentável da ONU, especificamente o ODS-3, que visa assegurar uma vida saudável e promover o bem-estar para todos.
+
+Para o teste, é necessário a extensão PlatformIO do VSCode.
